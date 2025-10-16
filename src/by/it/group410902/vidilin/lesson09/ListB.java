@@ -1,40 +1,41 @@
-
 package by.it.group410902.vidilin.lesson09;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 public class ListB<E> implements List<E> {
-
-    private static class Node<E> {
+    //Создайте аналог списка БЕЗ использования других классов СТАНДАРТНОЙ БИБЛИОТЕКИ
+    private class Node {
         E data;
-        Node<E> next;
-        Node<E> prev;
+        Node next;
 
         Node(E data) {
             this.data = data;
             this.next = null;
-            this.prev = null;
         }
     }
 
-    private Node<E> head;
-    private Node<E> tail;
+    private Node head;
     private int size;
 
     public ListB() {
         head = null;
-        tail = null;
         size = 0;
     }
 
+    /////////////////////////////////////////////////////////////////////////
+    //////               Обязательные к реализации методы             ///////
+    /////////////////////////////////////////////////////////////////////////
+
     @Override
     public String toString() {
+        if (size == 0) {
+            return "[]";
+        }
         StringBuilder sb = new StringBuilder("[");
-        Node<E> current = head;
+        Node current = head;
         while (current != null) {
             sb.append(current.data);
             if (current.next != null) {
@@ -48,14 +49,15 @@ public class ListB<E> implements List<E> {
 
     @Override
     public boolean add(E e) {
-        Node<E> newNode = new Node<>(e);
+        Node newNode = new Node(e);
         if (head == null) {
             head = newNode;
-            tail = newNode;
         } else {
-            tail.next = newNode;
-            newNode.prev = tail;
-            tail = newNode;
+            Node current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
         }
         size++;
         return true;
@@ -66,51 +68,21 @@ public class ListB<E> implements List<E> {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-
-        Node<E> nodeToRemove;
+        E removedData;
         if (index == 0) {
-            nodeToRemove = head;
+            removedData = head.data;
             head = head.next;
-            if (head != null) {
-                head.prev = null;
-            } else {
-                tail = null;
-            }
-        } else if (index == size - 1) {
-            nodeToRemove = tail;
-            tail = tail.prev;
-            tail.next = null;
         } else {
-            nodeToRemove = getNode(index);
-            Node<E> prevNode = nodeToRemove.prev;
-            Node<E> nextNode = nodeToRemove.next;
-            prevNode.next = nextNode;
-            nextNode.prev = prevNode;
-        }
-
-        size--;
-        return nodeToRemove.data;
-    }
-
-    private Node<E> getNode(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
-        Node<E> current;
-        if (index < size / 2) {
-            current = head;
-            for (int i = 0; i < index; i++) {
+            Node current = head;
+            for (int i = 0; i < index - 1; i++) {
                 current = current.next;
             }
-        } else {
-            current = tail;
-            for (int i = size - 1; i > index; i--) {
-                current = current.prev;
-            }
+            removedData = current.next.data;
+            current.next = current.next.next;
         }
-        return current;
+        size--;
+        return removedData;
     }
-
 
     @Override
     public int size() {
@@ -122,51 +94,35 @@ public class ListB<E> implements List<E> {
         if (index < 0 || index > size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-
-        Node<E> newNode = new Node<>(element);
+        Node newNode = new Node(element);
         if (index == 0) {
             newNode.next = head;
-            if (head != null) {
-                head.prev = newNode;
-            }
             head = newNode;
-            if (tail == null) {
-                tail = newNode;
-            }
-        } else if (index == size) {
-            tail.next = newNode;
-            newNode.prev = tail;
-            tail = newNode;
         } else {
-            Node<E> currentNode = getNode(index);
-            Node<E> prevNode = currentNode.prev;
-            newNode.next = currentNode;
-            newNode.prev = prevNode;
-            currentNode.prev = newNode;
-            prevNode.next = newNode;
+            Node current = head;
+            for (int i = 0; i < index - 1; i++) {
+                current = current.next;
+            }
+            newNode.next = current.next;
+            current.next = newNode;
         }
         size++;
     }
 
     @Override
     public boolean remove(Object o) {
-        Node<E> current = head;
-        while (current != null) {
-            if (o == null ? current.data == null : o.equals(current.data)) {
-                if (current == head) {
-                    head = current.next;
-                    if (head != null) {
-                        head.prev = null;
-                    } else {
-                        tail = null;
-                    }
-                } else if (current == tail) {
-                    tail = current.prev;
-                    tail.next = null;
-                } else {
-                    current.prev.next = current.next;
-                    current.next.prev = current.prev;
-                }
+        if (head == null) {
+            return false;
+        }
+        if (o == null ? head.data == null : o.equals(head.data)) {
+            head = head.next;
+            size--;
+            return true;
+        }
+        Node current = head;
+        while (current.next != null) {
+            if (o == null ? current.next.data == null : o.equals(current.next.data)) {
+                current.next = current.next.next;
                 size--;
                 return true;
             }
@@ -180,37 +136,35 @@ public class ListB<E> implements List<E> {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-
-        Node<E> nodeToSet = getNode(index);
-        E oldData = nodeToSet.data;
-        nodeToSet.data = element;
-        return oldData;
+        Node current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        E oldValue = current.data;
+        current.data = element;
+        return oldValue;
     }
-
 
     @Override
     public boolean isEmpty() {
         return size == 0;
     }
 
-
     @Override
     public void clear() {
         head = null;
-        tail = null;
         size = 0;
     }
 
+
     @Override
     public int indexOf(Object o) {
-        Node<E> current = head;
-        int index = 0;
-        while (current != null) {
+        Node current = head;
+        for (int i = 0; i < size; i++) {
             if (o == null ? current.data == null : o.equals(current.data)) {
-                return index;
+                return i;
             }
             current = current.next;
-            index++;
         }
         return -1;
     }
@@ -220,35 +174,34 @@ public class ListB<E> implements List<E> {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-        return getNode(index).data;
+        Node current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        return current.data;
     }
 
     @Override
     public boolean contains(Object o) {
-        return indexOf(o) >= 0;
+        return indexOf(o) != -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        Node<E> current = tail;
-        int index = size - 1;
-        while (current != null) {
+        int lastIndex = -1;
+        Node current = head;
+        for (int i = 0; i < size; i++) {
             if (o == null ? current.data == null : o.equals(current.data)) {
-                return index;
+                lastIndex = i;
             }
-            current = current.prev;
-            index--;
+            current = current.next;
         }
-        return -1;
+        return lastIndex;
     }
 
-
     /////////////////////////////////////////////////////////////////////////
+    //////               Необязательные методы                           ///////
     /////////////////////////////////////////////////////////////////////////
-    //////               Опциональные к реализации методы             ///////
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-
 
     @Override
     public boolean containsAll(Collection<?> c) {
@@ -262,13 +215,13 @@ public class ListB<E> implements List<E> {
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        if (c.isEmpty()) {
-            return false;
+        boolean modified = false;
+        for (E e : c) {
+            if (add(e)) {
+                modified = true;
+            }
         }
-        for (E element : c) {
-            add(element);
-        }
-        return true;
+        return modified;
     }
 
     @Override
@@ -276,43 +229,32 @@ public class ListB<E> implements List<E> {
         if (index < 0 || index > size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-        if (c.isEmpty()) {
-            return false;
+        boolean modified = false;
+        for (E e : c) {
+            add(index++, e);
+            modified = true;
         }
-
-        for (E element : c) {
-            add(index++, element);
-        }
-        return true;
+        return modified;
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
         boolean modified = false;
-        Node<E> current = head;
+        Node current = head;
+        Node prev = null;
         while (current != null) {
             if (c.contains(current.data)) {
-                Node<E> next = current.next;
-                if (current == head) {
-                    head = next;
-                    if (head != null) {
-                        head.prev = null;
-                    } else {
-                        tail = null;
-                    }
-                } else if (current == tail) {
-                    tail = current.prev;
-                    tail.next = null;
+                if (prev == null) {
+                    head = current.next;
                 } else {
-                    current.prev.next = next;
-                    next.prev = current.prev;
+                    prev.next = current.next;
                 }
                 size--;
                 modified = true;
-                current = next;
             } else {
-                current = current.next;
+                prev = current;
             }
+            current = current.next;
         }
         return modified;
     }
@@ -320,42 +262,35 @@ public class ListB<E> implements List<E> {
     @Override
     public boolean retainAll(Collection<?> c) {
         boolean modified = false;
-        Node<E> current = head;
+        Node current = head;
+        Node prev = null;
         while (current != null) {
             if (!c.contains(current.data)) {
-                Node<E> next = current.next;
-                if (current == head) {
-                    head = next;
-                    if (head != null) {
-                        head.prev = null;
-                    } else {
-                        tail = null;
-                    }
-                } else if (current == tail) {
-                    tail = current.prev;
-                    tail.next = null;
+                if (prev == null) {
+                    head = current.next;
                 } else {
-                    current.prev.next = next;
-                    next.prev = current.prev;
+                    prev.next = current.next;
                 }
                 size--;
                 modified = true;
-                current = next;
             } else {
-                current = current.next;
+                prev = current;
             }
+            current = current.next;
         }
         return modified;
     }
 
-
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
         if (fromIndex < 0 || toIndex > size || fromIndex > toIndex) {
-            throw new IndexOutOfBoundsException();
+            throw new IndexOutOfBoundsException("fromIndex: " + fromIndex + ", toIndex: " + toIndex + ", Size: " + size);
         }
-        List<E> subList = new ListB<>();
-        Node<E> current = getNode(fromIndex);
+        ListB<E> subList = new ListB<>();
+        Node current = head;
+        for (int i = 0; i < fromIndex; i++) {
+            current = current.next;
+        }
         for (int i = fromIndex; i < toIndex; i++) {
             subList.add(current.data);
             current = current.next;
@@ -365,54 +300,46 @@ public class ListB<E> implements List<E> {
 
     @Override
     public ListIterator<E> listIterator(int index) {
-        throw new UnsupportedOperationException();
+        return null;
     }
+
 
     @Override
     public ListIterator<E> listIterator() {
-        throw new UnsupportedOperationException();
+        return listIterator(0);
     }
-
 
     @Override
     public <T> T[] toArray(T[] a) {
         if (a.length < size) {
-            a = (T[]) java.lang.reflect.Array.newInstance(
-                    a.getClass().getComponentType(), size);
+            a = (T[]) new Object[size];
         }
-        int i = 0;
-        Object[] result = a;
-        for (Node<E> x = head; x != null; x = x.next) {
-            result[i++] = x.data;
+        Node current = head;
+        for (int i = 0; i < size; i++) {
+            a[i] = (T) current.data;
+            current = current.next;
         }
-
         if (a.length > size) {
             a[size] = null;
         }
-
         return a;
     }
 
     @Override
     public Object[] toArray() {
         Object[] result = new Object[size];
-        int i = 0;
-        for (Node<E> x = head; x != null; x = x.next) {
-            result[i++] = x.data;
+        Node current = head;
+        for (int i = 0; i < size; i++) {
+            result[i] = current.data;
+            current = current.next;
         }
         return result;
     }
 
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-    ////////        Эти методы имплементировать необязательно    ////////////
-    ////////        но они будут нужны для корректной отладки    ////////////
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
     @Override
     public Iterator<E> iterator() {
         return new Iterator<E>() {
-            private Node<E> current = head;
+            private Node current = head;
 
             @Override
             public boolean hasNext() {
@@ -422,18 +349,12 @@ public class ListB<E> implements List<E> {
             @Override
             public E next() {
                 if (!hasNext()) {
-                    throw new NoSuchElementException();
+                    throw new java.util.NoSuchElementException();
                 }
                 E data = current.data;
                 current = current.next;
                 return data;
             }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException("remove");
-            }
         };
     }
-
 }

@@ -32,21 +32,21 @@ public class B_Knapsack {
         Scanner scanner = new Scanner(stream);
         int W = scanner.nextInt();
         int n = scanner.nextInt();
-        int weights[] = new int[n];
+        int gold[] = new int[n];
         for (int i = 0; i < n; i++) {
-            weights[i] = scanner.nextInt();
+            gold[i] = scanner.nextInt();
         }
 
         int[][] dp = new int[n + 1][W + 1];
 
         for (int i = 0; i <= n; i++) {
-            for (int w = 0; w <= W; w++) {
-                if (i == 0 || w == 0) {
-                    dp[i][w] = 0;
-                } else if (weights[i - 1] <= w) {
-                    dp[i][w] = Math.max(weights[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+            for (int j = 0; j <= W; j++) {
+                if (i == 0 || j == 0) {
+                    dp[i][j] = 0;
+                } else if (gold[i - 1] <= j) {
+                    dp[i][j] = Math.max(gold[i - 1] + dp[i - 1][j - gold[i - 1]], dp[i - 1][j]);
                 } else {
-                    dp[i][w] = dp[i - 1][w];
+                    dp[i][j] = dp[i - 1][j];
                 }
             }
         }

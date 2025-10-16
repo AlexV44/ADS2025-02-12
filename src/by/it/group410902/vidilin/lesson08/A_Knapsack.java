@@ -40,15 +40,15 @@ public class A_Knapsack {
         Scanner scanner = new Scanner(stream);
         int w=scanner.nextInt();
         int n=scanner.nextInt();
-        int weights[]=new int[n];
+        int gold[]=new int[n];
         for (int i = 0; i < n; i++) {
-            weights[i]=scanner.nextInt();
+            gold[i]=scanner.nextInt();
         }
 
         int[] dp = new int[w + 1];
 
         for (int i = 1; i <= w; i++) {
-            for (int weight : weights) {
+            for (int weight : gold) {
                 if (weight <= i) {
                     dp[i] = Math.max(dp[i], dp[i - weight] + weight);
                 }
