@@ -171,7 +171,7 @@ public class MyHashSet<E> implements Set<E> {
         return sb.toString();
     }
 
-    // Вспомогательные методы
+
 
     private int hash(Object element) {
         int h = element.hashCode();

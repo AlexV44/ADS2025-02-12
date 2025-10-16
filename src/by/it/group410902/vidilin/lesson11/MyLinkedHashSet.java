@@ -422,7 +422,7 @@ public class MyLinkedHashSet<E> implements Set<E> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+
     public <T> T[] toArray(T[] a) {
         if (a.length < size) {
             a = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
